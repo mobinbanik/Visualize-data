@@ -13,23 +13,26 @@ database_manager = DatabaseManager(
 )
 
 
-class Contact(peewee.Model):
-    first_name = peewee.CharField(
+class Transaction(peewee.Model):
+    customer_code = peewee.CharField(
         max_length=255,
         null=False,
-        verbose_name='First Name'
+        verbose_name='Customer Code'
     )
-    last_name = peewee.CharField(
+    product_name = peewee.CharField(
         max_length=255,
         null=False,
-        verbose_name='Last Name',
+        verbose_name='Product Name',
     )
-    number = peewee.CharField(
-        max_length=20,
-        null=False,
-        verbose_name='Number',
+    month = peewee.IntegerField(
+        verbose_name='Month',
     )
-    address = peewee.TextField(null=True, verbose_name='Address')
+    base_prices = peewee.FloatField(
+        verbose_name='Base Price'
+    )
+    count = peewee.IntegerField(
+        verbose_name='Count'
+    )
 
     class Meta:
         database = database_manager.db
@@ -37,18 +40,25 @@ class Contact(peewee.Model):
 
 def initialize_database():
     try:
-        database_manager.create_tables(models=[Contact])
-        with open("init_data.txt", "r") as init:
-            for line in init:
-                contact = line.split(",")
-                Contact.create(
-                    first_name=contact[0],
-                    last_name=contact[1],
-                    number=contact[2],
-                    address=contact[3],
+        print("start initializing database")
+        database_manager.create_tables(models=[Transaction])
+        with open("Transactions.csv", "r") as init:
+            for i, line in enumerate(init):
+                # We don't want to add first line.
+                if i == 0:
+                    continue
+                trans = line.split(",")
+                Transaction.create(
+                    customer_code=trans[0],
+                    product_name=trans[1],
+                    month=trans[2],
+                    base_prices=trans[3],
+                    count=trans[4],
                 )
     except Exception as e:
         print("Error", e)
+    else:
+        print("Database initialized")
     finally:
         # closing database connection.
         if database_manager.db:
@@ -56,78 +66,29 @@ def initialize_database():
             print("Database connection is closed")
 
 
-def get_contacts():
-    try:
-        contacts = Contact.select()
-        for contact in contacts:
-            yield {
-                "First Name": contact.first_name,
-                "Last Name": contact.last_name,
-                "Number": contact.number,
-                "Address": contact.address,
-                "Id": str(contact.get_id()),
-            }
-    except Exception as e:
-        print("Error", e)
-    finally:
-        # closing database connection.
-        if database_manager.db:
-            database_manager.db.close()
-            print("Database connection is closed")
-
-
-def add_contact(first_name, last_name, number, address=None):
-    try:
-        Contact.create(
-            first_name=first_name,
-            last_name=last_name,
-            number=number,
-            address=address,
-        )
-    except Exception as e:
-        print("Error", e)
-    finally:
-        # closing database connection.
-        if database_manager.db:
-            database_manager.db.close()
-            print("Database connection is closed")
-
-
-def delete_contact(id_row: int):
-    try:
-        Contact.delete_by_id(id_row)
-    except Exception as e:
-        print("Error", e)
-    finally:
-        # closing database connection.
-        if database_manager.db:
-            database_manager.db.close()
-            print("Database connection is closed")
-
-
-def search_contact(search_term: str):
-    try:
-        retrieved_data = Contact.select().where(
-            (Contact.first_name.contains(search_term))
-            | (Contact.last_name.contains(search_term))
-            | (Contact.number.contains(search_term))
-            | (Contact.address.contains(search_term))
-        )
-        for contact in retrieved_data:
-            yield {
-                "First Name": contact.first_name,
-                "Last Name": contact.last_name,
-                "Number": contact.number,
-                "Address": contact.address,
-                "Id": str(contact.get_id()),
-            }
-    except Exception as e:
-        print("Error", e)
-    finally:
-        # closing database connection.
-        if database_manager.db:
-            database_manager.db.close()
-            print("Database connection is closed")
+# def search_contact(search_term: str):
+#     try:
+#         retrieved_data = Contact.select().where(
+#             (Contact.first_name.contains(search_term))
+#             | (Contact.last_name.contains(search_term))
+#             | (Contact.number.contains(search_term))
+#             | (Contact.address.contains(search_term))
+#         )
+#         for contact in retrieved_data:
+#             yield {
+#                 "First Name": contact.first_name,
+#                 "Last Name": contact.last_name,
+#                 "Number": contact.number,
+#                 "Address": contact.address,
+#                 "Id": str(contact.get_id()),
+#             }
+#     except Exception as e:
+#         print("Error", e)
+#     finally:
+#         # closing database connection.
+#         if database_manager.db:
+#             database_manager.db.close()
+#             print("Database connection is closed")
 
 
 # initialize database
