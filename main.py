@@ -1,42 +1,69 @@
-"""Visualize data."""
+"""Visualize data.
+
+use postgresSQL for database."""
 import matplotlib.pyplot as plt
 import database
-# import pandas as pd
 
 
 def has_multiple_customer(customers: list[dict]) -> bool:
+    """Check for a unique customer.
+    check if a list has multiple customers or not.
+    :param customers: list of dictionaries
+    :return: bool
+    """
     flag_multiple_customer = False
+    # Customer code of first index
     first_customer = customers[0]["customer_code"]
     for customer in customers:
         if customer["customer_code"] != first_customer:
             flag_multiple_customer = True
             break
+    # If first_customer didn't change means all are the same customer code
     return flag_multiple_customer
 
 
 def remove_customers(customers: list[dict], customer_code: str):
+    """Remove customer from list.
+
+    remove extra customer from list and return one of them.
+
+    :param customers: list of dictionaries.
+    :param customer_code: customer code you searched.
+    :return: one selected customer.
+    """
     print(customers)
     print(f"we found more than one customer code <{customer_code}>.")
     print("\nEnter customer code you want in this list")
+    # Get input
     customer_code = input(
         "Enter your customer code:(example:'Z-534', 'V-718', 'L-302')\n"
     ).lower()
+    # Pick customers who have customer_code that user entered
     selected_customer = list()
     for i, customer in enumerate(customers):
         if customer_code in customer["customer_code"].lower():
             selected_customer.append(customer)
-
     if has_multiple_customer(selected_customer):
+        # If there is multiple customer remove it
         return remove_customers(selected_customer, customer_code)
     else:
+        # If there is one customer, return it
         return selected_customer
 
 
 def get_customer_from_database():
+    """Get the customer from database.
+
+    get customer code from user and retrieve data from database.
+    :return: customer
+    """
+    # Get input
     customer_code = input(
         "Enter your customer code:(example:'Z-534', 'V-718', 'L-302')\n"
     )
+    # Retrieve data from database
     selected_customer = list(database.get_customer_by_code(customer_code))
+    # If there is no customer:
     if len(selected_customer) == 0:
         print(f"No customer with this code: '{customer_code}' found.")
         # Do you want to continue?
@@ -49,9 +76,10 @@ def get_customer_from_database():
         else:
             # Exit
             exit()
-
+    # If there is multiple customer:
     if has_multiple_customer(selected_customer):
         selected_customer = remove_customers(selected_customer, customer_code)
+    # Return customer
     return selected_customer
 
 
@@ -129,7 +157,7 @@ def main():
         fig, ax = plt.subplots()
         plt.bar(list_keys_of_purchases_dict, list_values_of_purchases_dict)
 
-        # Set rotation and size for label
+        # Set rotation and size for labels
         ax.xaxis.set_tick_params(rotation=15, labelsize=8)
         plt.xlabel("Products")
         plt.ylabel("Number of Purchases")

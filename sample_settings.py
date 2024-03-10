@@ -1,3 +1,4 @@
+"""Sample settings."""
 DATABASE = {
     'name': '',
     'user': '',
@@ -5,7 +6,7 @@ DATABASE = {
     'host': '',
     'port': 5432,
 }
-# If you want to create table with init data in Transactions.csv
+# If you want to create table with initial data in Transactions.csv
 # Set first_init to True
-# Attention: after first start set it to False
+# Attention: after first start set it too False to prevent duplicated contacts
 first_init = True

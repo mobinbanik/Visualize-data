@@ -1,9 +1,9 @@
-"""Q.
-"""
+"""Database modules."""
 import peewee
 from database_manager import DatabaseManager
 import local_settings
 
+# Database instance
 database_manager = DatabaseManager(
     database_name=local_settings.DATABASE['name'],
     user=local_settings.DATABASE['user'],
@@ -14,6 +14,7 @@ database_manager = DatabaseManager(
 
 
 class Transaction(peewee.Model):
+    """Transaction model."""
     customer_code = peewee.CharField(
         max_length=255,
         null=False,
@@ -35,14 +36,29 @@ class Transaction(peewee.Model):
     )
 
     class Meta:
+        """Meta class."""
         database = database_manager.db
 
 
 def initialize_database():
+    """Initialize database.
+
+    Create tables if they don't exist and fill with initial values.
+    if you don't want to initialize the database:
+    set sample_settings.first_init to False.
+    """
     try:
+        # Warning
         print("start initializing database")
+        # # you can uncomment these statements For more caution.
+        # print("do you want to continue? [y/n]")
+        # if input().lower() not in ['y', 'yes']:
+        #     exit()
+
+        # Create table
         database_manager.create_tables(models=[Transaction])
         with open("Transactions.csv", "r") as init:
+            # Get transactions line by line
             for i, line in enumerate(init):
                 # We don't want to add first line.
                 if i == 0:
@@ -60,15 +76,21 @@ def initialize_database():
     else:
         print("Database initialized")
     finally:
-        # closing database connection.
+        # Closing database connection
         if database_manager.db:
             database_manager.db.close()
             print("Database connection is closed")
 
 
 def get_customer_by_code(search_term: str):
+    """Get customer by code.
+
+    :param search_term: search term
+    :return: retrieved data
+    """
     try:
         print("start getting customers by code")
+        # Query
         retrieved_data = Transaction.select().where(
             (Transaction.customer_code.contains(search_term))
             & (Transaction.count != 0)
@@ -91,6 +113,6 @@ def get_customer_by_code(search_term: str):
 
 
 # initialize database
-# # Attention: after first start set local_settings.first_init to False
+# Attention: after first start set local_settings.first_init to False
 if local_settings.first_init:
     initialize_database()
